@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مسبحة الأذكار</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1f1a;--card:#12332b;--gold:#e8c468;--tx:#f3efe0;--mut:#8fb3a6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:radial-gradient(circle at 50% 0,#17463b,var(--bg) 70%);color:var(--tx);font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",sans-serif;overflow:hidden}
+.w{max-width:480px;margin:auto;padding:12px;display:flex;flex-direction:column;gap:10px;height:100%}
+#main{display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.tabs{flex:none;display:flex;background:var(--card);border-radius:30px;padding:4px}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);padding:10px;border-radius:26px;font-size:16px;font-family:inherit}
+.tabs button.on{background:var(--gold);color:#143;font-weight:700}
+.bar{flex:none;height:6px;background:var(--card);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .3s}
+.txt{flex:1 1 0;min-height:0;background:var(--card);border:1px solid #1f5446;border-radius:18px;padding:14px;font-size:21px;line-height:1.75;text-align:center;display:flex;align-items:safe center;justify-content:safe center;overflow:hidden}
+.fz{flex:none;height:76px;background:#0f2a24;border-right:3px solid var(--gold);border-radius:12px;padding:8px 12px;font-size:14px;line-height:1.6;color:#cfe3da;overflow:hidden}
+.meta{flex:none;display:flex;justify-content:space-between;color:var(--mut);font-size:14px}
+.ring{position:relative;width:130px;height:130px;flex:none;margin:0 auto;touch-action:manipulation}
+.ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:10}
+.bg{stroke:#1d4a3f}.fg{stroke:var(--gold);stroke-linecap:round;transition:stroke-dashoffset .2s}
+#tap{position:absolute;inset:16px;border-radius:50%;border:0;background:radial-gradient(circle at 35% 30%,#2a7a65,#14463a);color:var(--tx);font-size:34px;font-weight:700;box-shadow:0 8px 24px #0008,inset 0 2px 6px #fff3;overflow:hidden;font-family:inherit}
+#tap:active{transform:scale(.95)}
+#tap span{font-size:13px;display:block;color:var(--gold);font-weight:400}
+.rp{position:absolute;border-radius:50%;background:#e8c46855;transform:scale(0);animation:r .5s ease-out forwards;pointer-events:none}
+@keyframes r{to{transform:scale(4);opacity:0}}
+.row{flex:none;display:flex;flex-wrap:nowrap;gap:8px;justify-content:center}
+.row button{background:var(--card);color:var(--tx);border:1px solid #1f5446;border-radius:14px;padding:8px 16px;font-size:18px;font-family:inherit}
+.row button.off{opacity:.45}
+.done{display:none;text-align:center;padding:30px 10px}
+.done h2{color:var(--gold);font-size:28px}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="tabs"><button id="tm" onclick="setMode('m')">☀️ الصباح</button><button id="te" onclick="setMode('e')">🌙 المساء</button></div>
+  <div class="bar"><i id="pb"></i></div>
+  <div id="main">
+    <div class="txt" id="txt"></div>
+    <div class="meta"><span id="idx"></span><span id="rep"></span></div>
+    <div class="ring">
+      <svg viewBox="0 0 210 210"><circle class="bg" cx="105" cy="105" r="98"/><circle class="fg" id="fg" cx="105" cy="105" r="98" stroke-dasharray="615.8" stroke-dashoffset="615.8"/></svg>
+      <button id="tap" onclick="tap(event)"><div id="cnt">0</div><span>المتبقي <b id="left"></b></span></button>
+    </div>
+    <div class="row" style="direction:ltr"><button onclick="skip()">⏭</button><button onclick="prev()">⏮</button><button onclick="resetAll()">↺</button><button id="bv" onclick="tg('v')">📳</button><button id="bs" onclick="tg('s')">🔊</button></div>
+    <div class="fz" id="fz"></div>
+  </div>
+  <div class="done" id="done"><div style="font-size:64px">🌿</div><h2>تقبل الله منك</h2><p>أتممت الأذكار، جعلها الله في ميزان حسناتك</p><div class="row"><button onclick="resetAll()">ابدأ من جديد</button></div></div>
+</div>
+<script>
+var I=[
+["بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم",3],
+["رضيت بالله ربا وبالإسلام دينا وبمحمد صلى الله عليه وسلم نبيا",3],
+["أَعُوذُ بِاللهِ مِنْ الشَّيْطَانِ الرَّجِيمِ\nاللّهُ لاَ إِلَـهَ إِلاَّ هُوَ الْحَيُّ الْقَيُّومُ لاَ تَأْخُذُهُ سِنَةٌ وَلاَ نَوْمٌ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الأَرْضِ مَن ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلاَّ بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلاَ يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلاَّ بِمَا شَاء وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالأَرْضَ وَلاَ يَؤُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ",1],
+["بِسْمِ اللهِ الرَّحْمنِ الرَّحِيم\nقُلْ هُوَ ٱللَّهُ أَحَدٌ، ٱللَّهُ ٱلصَّمَدُ، لَمْ يَلِدْ وَلَمْ يُولَدْ، وَلَمْ يَكُن لَّهُۥ كُفُوًا أَحَدٌۢ",3],
+["بِسْمِ اللهِ الرَّحْمنِ الرَّحِيم\nقُلْ أَعُوذُ بِرَبِّ ٱلْفَلَقِ، مِن شَرِّ مَا خَلَقَ، وَمِن شَرِّ غَاسِقٍ إِذَا وَقَبَ، وَمِن شَرِّ ٱلنَّفَّٰثَٰتِ فِى ٱلْعُقَدِ، وَمِن شَرِّ حَاسِدٍ إِذَا حَسَدَ",3],
+["بِسْمِ اللهِ الرَّحْمنِ الرَّحِيم\nقُلْ أَعُوذُ بِرَبِّ ٱلنَّاسِ، مَلِكِ ٱلنَّاسِ، إِلَٰهِ ٱلنَّاسِ، مِن شَرِّ ٱلْوَسْوَاسِ ٱلْخَنَّاسِ، ٱلَّذِى يُوَسْوِسُ فِى صُدُورِ ٱلنَّاسِ، مِنَ ٱلْجِنَّةِ وَٱلنَّاسِ",3],
+["حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم",7],
+["أَعوذُ بِكَلِمـاتِ اللّهِ التّـامّـاتِ مِنْ شَـرِّ ما خَلَـق",3,1],
+["اللهم صل وسلم وبارك على نبينا محمد",10],
+["سبحان الله وبحمده عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته",3],
+["اللهم عالم الغيب والشهادة فاطر السماوات والأرض رب كل شيء ومليكه، أشهد أن لا إله إلا أنت، أعوذ بك من شر نفسي ومن شر الشيطان وشركه، وأن أقترف على نفسي سوءا أو أجره إلى مسلم",1],
+["{a} و{b} الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير، ربّ أسألك خير ما في {y} وخير ما {z}، وأعوذ بك من شر ما في {y} وشر ما {z}، ربّ أعوذ بك من الكسل وسوء الكبر، ربّ أعوذ بك من عذاب في النار وعذاب في القبر",1],
+["اللهم إني {c} أشهدك، وأشهد حملة عرشك، وملائكتك، وجميع خلقك، أنك أنت الله لا إله إلا أنت وحدك لا شريك لك، وأن محمدا عبدك ورسولك",4],
+["اللهم ما {b} بي من نعمة أو بأحد من خلقك، فمنك وحدك لا شريك لك، فلك الحمد ولك الشكر",1],
+[["اللهم بك أصبحنا وبك أمسينا، وبك نحيا وبك نموت وإليك النشور","اللهم بك أمسينا وبك أصبحنا، وبك نحيا وبك نموت وإليك المصير"],1],
+["{a} على فطرة الإسلام، وعلى كلمة الإخلاص، وعلى دين نبينا محمد صلى الله عليه وسلم، وعلى ملة أبينا إبراهيم حنيفا مسلما وما كان من المشركين",1],
+["{a} و{b} الملك لله رب العالمين، اللهم إني أسألك خير {y}، {q}، وأعوذ بك من شر ما {f} وشر ما {z}",1],
+["اللهم إني أسألك العفو والعافية في الدنيا والآخرة، اللهم إني أسألك العفو والعافية في ديني ودنياي وأهلي ومالي، اللهم استر عوراتي وآمن روعاتي، اللهم احفظني من بين يدي ومن خلفي وعن يميني وعن شمالي، ومن فوقي، وأعوذ بعظمتك أن أغتال من تحتي",1],
+["اللهم عافني في بدني، اللهم عافني في سمعي، اللهم عافني في بصري، لا إله إلا أنت. اللهم إني أعوذ بك من الكفر، والفقر، وأعوذ بك من عذاب القبر، لا إله إلا أنت",3],
+["يا حي يا قيوم برحمتك أستغيث أصلح لي شأني كله ولا تكلني إلى نفسي طرفة عين",3],
+["اللهم إني أعوذ بك من الهم والحزن، وأعوذ بك من العجز والكسل، وأعوذ بك من الجبن والبخل، وأعوذ بك من غلبة الدين، وقهر الرجال",3],
+["اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي وأبوء بذنبي فاغفر لي فإنه لا يغفر الذنوب إلا أنت",1],
+["اللهم إنا نعوذ بك من أن نشرك بك شيئا نعلمه، ونستغفرك لما لا نعلمه",3],
+["أستغفر الله العظيم الذي لا إله إلا هو، الحي القيوم، وأتوب إليه",3],
+["اللهم إني أسألك علما نافعا، ورزقا طيبا، وعملا متقبلا",1],
+["اللهم أنت ربي لا إله إلا أنت، عليك توكلت، وأنت رب العرش العظيم، ما شاء الله كان، وما لم يشأ لم يكن، ولا حول ولا قوة إلا بالله العلي العظيم، أعلم أن الله على كل شيء قدير، وأن الله قد أحاط بكل شيء علما، اللهم إني أعوذ بك من شر نفسي، ومن شر كل دابة أنت آخذ بناصيتها، إن ربي على صراط مستقيم",1],
+["اللهم لك الحمد كما ينبغي لجلال وجهك ولعظيم سلطانك",1],
+["أَسْتَغْفِرُ اللهَ وَأتُوبُ إلَيْهِ",100],
+["سُبْحَانَ اللهِ وَبِحَمْدِهِ",100],
+["لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير",100]
+];
+var FZ=[
+"من قالها ثلاثًا حين يصبح وثلاثًا حين يمسي لم تصبه فجأة بلاء. (رواه أبو داود والترمذي)",
+"من قالها حين يصبح وحين يمسي كان حقًّا على الله أن يرضيه يوم القيامة. (رواه أحمد وأبو داود والترمذي)",
+"من قالها حين يصبح أُجير من الجن حتى يمسي، ومن قالها حين يمسي أُجير منهم حتى يصبح. (رواه الحاكم)",
+"من قرأ الإخلاص والمعوذتين ثلاث مرات حين يصبح وحين يمسي كفته من كل شيء. (رواه أبو داود والترمذي)",
+"داخلة في حديث المعوذات: تكفيه من كل شيء إذا قرأها ثلاثًا صباحًا ومساءً. (رواه أبو داود والترمذي)",
+"داخلة في حديث المعوذات: تكفيه من كل شيء إذا قرأها ثلاثًا صباحًا ومساءً. (رواه أبو داود والترمذي)",
+"من قالها سبع مرات صباحًا ومساءً كفاه الله ما أهمّه من أمر الدنيا والآخرة. (رواه أبو داود موقوفًا على أبي الدرداء)",
+"من قالها ثلاثًا حين يمسي لم تضره حُمَة تلك الليلة. (رواه أحمد والترمذي)",
+"من صلى على النبي ﷺ صلاة صلى الله عليه بها عشرًا. (رواه مسلم)",
+"قال النبي ﷺ لجويرية رضي الله عنها: لقد قلتُ بعدك أربع كلمات ثلاث مرات لو وُزنت بما قلتِ منذ اليوم لوزنتهن. (رواه مسلم)",
+"أمر النبي ﷺ أبا بكر رضي الله عنه أن يقولها إذا أصبح وإذا أمسى وإذا أخذ مضجعه. (رواه أبو داود والترمذي)",
+"كان النبي ﷺ يقولها إذا أمسى وإذا أصبح. (رواه مسلم)",
+"من قالها أربع مرات صباحًا أو مساءً أعتقه الله من النار. (رواه أبو داود، وفي إسناده خلاف بين أهل العلم)",
+"من قالها فقد أدّى شكر يومه (وإذا أمسى شكر ليلته). (رواه أبو داود، وفي إسناده خلاف بين أهل العلم)",
+"كان النبي ﷺ يقولها إذا أصبح (وفي المساء بصيغتها المقابلة). (رواه الترمذي)",
+"كان النبي ﷺ يقولها إذا أصبح (وفي المساء: أمسينا). (رواه أحمد)",
+"دعاء مأثور عن النبي ﷺ للصباح والمساء. (رواه أبو داود، وفي إسناده خلاف بين أهل العلم)",
+"قال ابن عمر: لم يكن رسول الله ﷺ يدع هذه الدعوات حين يمسي وحين يصبح. (رواه أبو داود وابن ماجه)",
+"كان النبي ﷺ يدعو بها صباحًا ومساءً ثلاثًا. (رواه أبو داود)",
+"أوصى بها النبي ﷺ فاطمة رضي الله عنها أن تقولها إذا أصبحت وإذا أمست. (رواه الحاكم)",
+"أصل الدعاء ثابت عن النبي ﷺ في صحيح البخاري، وتخصيصه بالصباح والمساء جاء في حديث أبي أمامة عند أبي داود وفي إسناده ضعف.",
+"من قالها موقنًا بها في النهار فمات من يومه قبل أن يمسي فهو من أهل الجنة، ومن قالها موقنًا بها في الليل فمات قبل أن يصبح فهو من أهل الجنة. (رواه البخاري)",
+"قال النبي ﷺ: الشرك أخفى فيكم من دبيب النمل، وفيه تعليم هذا الدعاء. (رواه أحمد)",
+"من قالها غُفر له وإن كان فرّ من الزحف. (رواه أبو داود والترمذي)",
+"كان النبي ﷺ يقولها إذا صلى الصبح وسلّم. (رواه ابن ماجه)",
+"لم أجد في هذا الدعاء بصيغته حديثًا مرفوعًا بفضل مخصوص، فيُراجَع مع أهل العلم قبل النشر.",
+"ورد في فضل هذا الحمد حديث عند ابن ماجه أن الملكين لم يدريا كيف يكتبانه، وفي إسناده ضعف.",
+"قال النبي ﷺ: إنه ليُغان على قلبي وإني لأستغفر الله في اليوم مئة مرة. (رواه مسلم)",
+"من قالها حين يصبح وحين يمسي مئة مرة لم يأتِ أحد يوم القيامة بأفضل مما جاء به إلا من قال مثله أو زاد. (رواه مسلم)",
+"من قالها مئة مرة في يوم كانت له عدل عشر رقاب، وكُتبت له مئة حسنة، ومُحيت عنه مئة سيئة، وكانت له حرزًا من الشيطان حتى يمسي. (رواه البخاري ومسلم)"
+];
+I.forEach(function(x,k){x[3]=FZ[k]});
+var V={m:{a:"أصبحنا",b:"أصبح",c:"أصبحت",y:"هذا اليوم",z:"بعده",f:"فيه",q:"فتحه، ونصره، ونوره وبركته، وهداه"},e:{a:"أمسينا",b:"أمسى",c:"أمسيت",y:"هذه الليلة",z:"بعدها",f:"فيها",q:"فتحها، ونصرها، ونورها وبركتها، وهداها"}};
+function LST(){return I.filter(function(x){return !(x[2]&&mode=="m")})}
+function fx(s){if(typeof s!="string")s=s[mode=="m"?0:1];return s.replace(/\{(\w)\}/g,function(_,k){return V[mode][k]})}
+var $=function(i){return document.getElementById(i)};
+var mode=new Date().getHours()<14?"m":"e",i=0,c=0,snd=true,vib=true,ac=null;
+function setMode(m){mode=m;i=0;c=0;render()}
+function render(){
+  var L=LST();
+  $("tm").className=mode=="m"?"on":"";$("te").className=mode=="e"?"on":"";
+  if(i>=L.length){$("main").style.display="none";$("done").style.display="block";$("pb").style.width="100%";return}
+  $("main").style.display="flex";$("done").style.display="none";
+  var d=[fx(L[i][0]),L[i][1]];
+  $("txt").style.whiteSpace="pre-line";$("txt").textContent=d[0];
+  $("txt").style.fontSize=d[0].length>300?"16px":d[0].length>150?"18px":"22px";
+  $("fz").textContent=L[i][3]?"✨ الفضل: "+L[i][3]:"";$("idx").textContent="ذكر "+(i+1)+" من "+L.length;$("rep").textContent="التكرار: "+d[1];
+  $("cnt").textContent=c;$("left").textContent=d[1]-c;
+  $("fg").style.strokeDashoffset=615.8*(1-c/d[1]);
+  $("pb").style.width=(i/L.length*100)+"%";
+  fit($("txt"),24,9);fit($("fz"),14,8);$("bs").className=snd?"":"off";$("bv").className=vib?"":"off";
+}
+function beep(f,t){
+  if(!snd)return;
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+    var o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.type="sine";
+    g.gain.setValueAtTime(.18,ac.currentTime);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+t);
+    o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+t)}catch(e){}
+}
+function buzz(p){if(vib&&navigator.vibrate){try{navigator.vibrate(p)}catch(e){}}}
+function tap(ev){
+  var L=LST();if(i>=L.length)return;
+  var b=$("tap"),r=b.getBoundingClientRect(),s=document.createElement("div");
+  s.className="rp";s.style.cssText="width:40px;height:40px;left:"+((ev.clientX||r.left+r.width/2)-r.left-20)+"px;top:"+((ev.clientY||r.top+r.height/2)-r.top-20)+"px";
+  b.appendChild(s);setTimeout(function(){s.remove()},500);
+  c++;
+  if(c>=L[i][1]){beep(880,.5);buzz([60,40,120]);c=0;i++;render()}
+  else{beep(520,.08);buzz(25);render()}
+}
+function fit(el,mx,mn){var f=mx;el.style.fontSize=f+"px";while(f>mn&&el.scrollHeight>el.clientHeight+1){f-=0.5;el.style.fontSize=f+"px"}}
+window.addEventListener("resize",function(){render()});
+function prev(){c=0;if(i>0)i--;render()}
+function skip(){c=0;i++;render()}
+function resetAll(){i=0;c=0;render()}
+function tg(k){if(k=="s")snd=!snd;else vib=!vib;render()}
+render();
+</script>
+</body>
+</html>
